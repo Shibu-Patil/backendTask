@@ -21,15 +21,12 @@ exports.createStudent = async (req, res) => {
   try {
     const { name, email, mobileNumber, batchCode } = req.body;
 
-    // Check required fields
     if (!name || !email || !mobileNumber || !batchCode)
       return res.status(400).json({ error: "All fields are required" });
 
-    // Validate mobile format
     if (!isValidMobile(mobileNumber))
       return res.status(400).json({ error: "Invalid mobile number (10 digits)" });
 
-    // Check for duplicates
     const existingStudent = await Student.findOne({
       $or: [{ email }, { mobileNumber }]
     });
@@ -42,7 +39,6 @@ exports.createStudent = async (req, res) => {
             : "Mobile number already exists"
       });
 
-    // Create new student
     const student = new Student({ name, email, mobileNumber, batchCode });
     await student.save();
 
@@ -53,10 +49,10 @@ exports.createStudent = async (req, res) => {
 };
 
 // =============================================================
-// ✅ UPDATE student scores (Admin only)
+// ✅ UPDATE student scores + email (Admin only)
 exports.updateScores = async (req, res) => {
   try {
-    const { email, mobileNumber, technical, communication, remarks } = req.body;
+    const { email, mobileNumber, updatedEmail, technical, communication, remarks } = req.body;
 
     // Must provide exactly one identifier
     if ((!email && !mobileNumber) || (email && mobileNumber)) {
@@ -67,32 +63,39 @@ exports.updateScores = async (req, res) => {
 
     const allowedValues = ["*", "1", "2", "3", "remock"];
 
-    // Validate allowed values for scores
     if (
       (technical && !allowedValues.includes(technical)) ||
       (communication && !allowedValues.includes(communication))
     ) {
       return res.status(400).json({
-        error:
-          "Technical & Communication must be one of 1, 2, 3, '*', or 'remock'"
+        error: "Technical & Communication must be one of 1, 2, 3, '*', or 'remock'"
       });
     }
 
-    // Find student by either email or mobile
+    // Find student by identifier
     const student = await Student.findOne({
       $or: [{ email }, { mobileNumber }]
     });
 
     if (!student) return res.status(404).json({ error: "Student not found" });
 
-    // Update only provided fields
+    // ✅ Update email if provided and unique
+    if (updatedEmail && updatedEmail !== student.email) {
+      const emailExists = await Student.findOne({ email: updatedEmail });
+      if (emailExists)
+        return res.status(400).json({ error: "Updated email already in use" });
+
+      student.email = updatedEmail;
+    }
+
+    // ✅ Update scores
     if (technical) student.scores.technical = technical;
     if (communication) student.scores.communication = communication;
     if (remarks !== undefined) student.scores.remarks = remarks;
 
     await student.save();
 
-    res.json({ message: "Scores updated successfully", student });
+    res.json({ message: "Student updated successfully", student });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
