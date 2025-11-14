@@ -1,6 +1,8 @@
 const sendMailToAllStudents = require("../utils/sendMailToAllStudents");
 
 exports.sendMail = async (req, res) => {
+  console.log("Email:", process.env.EMAIL_USER);
+  console.log("Pass exists:", process.env.EMAIL_PASS);
   try {
     const { subject, message, kt, testEmail } = req.body;
 
@@ -16,6 +18,8 @@ exports.sendMail = async (req, res) => {
         : "✅ Emails sent to all students!",
     });
   } catch (err) {
+    console.log(err);
+    
     res.status(500).json({ error: err.message });
   }
 };

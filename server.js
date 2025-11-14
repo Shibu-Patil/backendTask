@@ -11,6 +11,9 @@ const mailRoutes = require("./routes/mailRoutes");
 dotenv.config();
 const app = express();
 
+console.log("Email:", process.env.EMAIL_USER);
+console.log("Pass exists:", !!process.env.EMAIL_PASS);
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
