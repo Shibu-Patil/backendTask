@@ -1,4 +1,5 @@
 const Student = require('../models/Student');
+const jwt =require("jsonwebtoken")
 
 // =============================================================
 // Helper: validate 10-digit mobile number
@@ -48,8 +49,98 @@ exports.createStudent = async (req, res) => {
   }
 };
 
+
+// exports.studentLogin = async (req, res) => {
+//   try {
+//     const { email, mobileNumber } = req.body;
+
+//     if (!email && !mobileNumber)
+//       return res.status(400).json({ error: "Provide email or mobileNumber to login" });
+
+//     const student = await Student.findOne({
+//       $or: [{ email }, { mobileNumber }]
+//     });
+
+//     if (!student)
+//       return res.status(404).json({ error: "Student not found" });
+
+//     // Generate JWT token
+//     const token = jwt.sign(
+//       { id: student._id },
+//       process.env.JWT_SECRET,
+//       { expiresIn: "7d" } // valid for 7 days
+//     );
+
+//     res.json({
+//       success: true,
+//       message: "Login successful",
+//       student: {
+//         id: student._id,
+//         name: student.name,
+//         email: student.email,
+//         mobileNumber: student.mobileNumber,
+//         batchCode: student.batchCode,
+//       },
+//       token
+//     });
+
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+
 // =============================================================
 // ✅ UPDATE student scores + email (Admin only)
+
+
+exports.studentLogin = async (req, res) => {
+  try {
+    const { email, mobileNumber } = req.body;
+
+    if (!email && !mobileNumber)
+      return res.status(400).json({ error: "Provide email or mobileNumber to login" });
+
+    const student = await Student.findOne({
+      $or: [{ email }, { mobileNumber }]
+    });
+
+    if (!student)
+      return res.status(404).json({ error: "Student not found" });
+
+    // ✅ Check if student has already submitted
+    if (student.isSubmitted) {
+      return res.status(403).json({ 
+        error: "You have already submitted. Login is disabled." 
+      });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: student._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" } // valid for 7 days
+    );
+
+    res.json({
+      success: true,
+      message: "Login successful",
+      student: {
+        id: student._id,
+        name: student.name,
+        email: student.email,
+        mobileNumber: student.mobileNumber,
+        batchCode: student.batchCode,
+      },
+      token
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 exports.updateScores = async (req, res) => {
   try {
     const { email, mobileNumber, updatedEmail, technical, communication, remarks } = req.body;

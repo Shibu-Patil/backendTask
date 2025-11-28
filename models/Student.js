@@ -15,7 +15,8 @@ const studentSchema = new mongoose.Schema({
     technical: { type: String, enum: ["*", "1", "2", "3", "remock"], default: "1" },
     communication: { type: String, enum: ["*", "1", "2", "3", "remock"], default: "1" },
     remarks: { type: String, default: "" }
-  }
+  },
+  isSubmitted: { type: Boolean, default: false } // <-- new field
 }, { timestamps: true });
 
 module.exports = mongoose.model('Student', studentSchema);

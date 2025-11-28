@@ -7,6 +7,9 @@ const bodyParser = require('body-parser');
 const studentRoutes = require('./routes/studentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const mailRoutes = require("./routes/mailRoutes");
+const questionRoutes = require('./routes/questionRoutes');
+const studentResponseRoutes = require('./routes/studentResponseRoutes');
+
 
 dotenv.config();
 const app = express();
@@ -30,6 +33,8 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use('/students', studentRoutes);
 app.use('/admin', adminRoutes);
 app.use("/api", mailRoutes);
+app.use("/api/questions", questionRoutes);          
+app.use("/api/student-responses", studentResponseRoutes); 
 
 // Health Check Route
 app.get('/', (req, res) => {
